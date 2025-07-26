@@ -2,6 +2,7 @@
 mod common;
 
 mod cli_integration {
+	use super::common::{self, PASS, StartServerArguments, USER};
 	use crate::remove_debug_info;
 	use assert_fs::prelude::{FileTouch, FileWriteStr, PathChild};
 	use chrono::Duration as ChronoDuration;
@@ -10,6 +11,7 @@ mod cli_integration {
 	use common::Format;
 	#[cfg(unix)]
 	use common::Socket;
+	use ferroid::{Base32UlidExt, UlidMono};
 	use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 	use serde::{Deserialize, Serialize};
 	#[cfg(unix)]
@@ -22,9 +24,6 @@ mod cli_integration {
 	use test_log::test;
 	use tokio::time::sleep;
 	use tracing::info;
-	use ulid::Ulid;
-
-	use super::common::{self, PASS, StartServerArguments, USER};
 
 	#[test]
 	fn version_command() {
@@ -77,8 +76,8 @@ mod cli_integration {
 		.await
 		.unwrap();
 		let creds = ""; // Anonymous user
-		let ns = Ulid::new();
-		let db = Ulid::new();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 
 		#[cfg(debug_assertions)]
 		{
@@ -122,7 +121,7 @@ mod cli_integration {
 			exported
 		};
 
-		let db2 = Ulid::new();
+		let db2 = UlidMono::new().encode().to_string();
 
 		info!("* Import the exported file");
 		{
@@ -148,7 +147,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"sql --conn ws://{addr} {creds} --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			let output = common::run(&args)
 				.input(
@@ -166,7 +165,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"sql --conn ws://{addr} {creds} --ns {throwaway} --db {throwaway} --multi --pretty",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			let output = common::run(&args)
 				.input(
@@ -192,7 +191,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"sql --conn ws://{addr} {creds} --ns {throwaway} --db {throwaway} --multi --pretty",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			let output = common::run(&args)
 				.input(
@@ -221,7 +220,7 @@ mod cli_integration {
 			let output = common::run(&args)
 				.input(&format!(
 					"USE NS `{throwaway}` DB `{throwaway}`; CREATE thing:one;\n",
-					throwaway = Ulid::new()
+					throwaway = UlidMono::new().encode()
 				))
 				.output()
 				.expect("neither ns nor db");
@@ -242,7 +241,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"sql --conn http://{addr} {creds} --db {throwaway}",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			common::run(&args).output().expect_err("only db");
 		}
@@ -293,7 +292,7 @@ mod cli_integration {
 			let exported = common::tmp_file("exported.surql");
 			let args = format!(
 				"export --conn http://{addr} {creds} --ns {throwaway} --db {throwaway} {exported}",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			common::run(&args).output().expect("failed to run export");
@@ -304,7 +303,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"import --conn http://{addr} {creds} --ns {throwaway} --db {throwaway} {exported}",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			common::run(&args).output().unwrap_or_else(|_| panic!("failed to run import: {args}"));
 		}
@@ -317,8 +316,8 @@ mod cli_integration {
 		// Commands with credentials for different auth levels
 		let (addr, mut server) = common::start_server_with_defaults().await.unwrap();
 		let creds = format!("--user {USER} --pass {PASS}");
-		let ns = Ulid::new();
-		let db = Ulid::new();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 
 		info!("* Create users with identical credentials at ROOT, NS and DB levels");
 		{
@@ -515,8 +514,8 @@ mod cli_integration {
 		// Commands with token for different auth levels
 		let (addr, mut server) = common::start_server_with_defaults().await.unwrap();
 		let ac = "test";
-		let ns = Ulid::new();
-		let db = Ulid::new();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 		let exp = (Utc::now() + ChronoDuration::days(1)).timestamp();
 		let key = "secret";
 		let header = Header::new(Algorithm::HS512);
@@ -866,7 +865,7 @@ mod cli_integration {
 		{
 			let args = format!(
 				"export --conn http://{addr} {creds} --ns {throwaway} --db {throwaway} -",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			let output = common::run(&args).output();
 			assert!(
@@ -881,7 +880,7 @@ mod cli_integration {
 			File::create(&tmp_file).expect("failed to create tmp file");
 			let args = format!(
 				"import --conn http://{addr} {creds} --ns {throwaway} --db {throwaway} {tmp_file}",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 			let output = common::run(&args).output();
 			assert!(
@@ -894,8 +893,8 @@ mod cli_integration {
 
 	#[test(tokio::test)]
 	async fn with_import_file() {
-		let ns = Ulid::new();
-		let db = Ulid::new();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 
 		info!("* Import and reimport root-level file");
 		{
@@ -1020,8 +1019,8 @@ mod cli_integration {
 		.unwrap();
 		let creds = ""; // Anonymous user
 
-		let ns = Ulid::new();
-		let db = Ulid::new();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 
 		info!("* Define a table");
 		{
@@ -1255,7 +1254,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN http::get('http://127.0.0.1/');\n\n";
@@ -1288,7 +1287,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1320,7 +1319,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1345,7 +1344,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN function() { return '1' };";
@@ -1369,7 +1368,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::len('123');\n\n".to_string();
@@ -1392,7 +1391,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::len('123');\n\n".to_string();
@@ -1413,7 +1412,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1439,7 +1438,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1467,7 +1466,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1495,7 +1494,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1525,7 +1524,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1555,7 +1554,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN string::lowercase('SURREALDB');\n\n".to_string();
@@ -1586,7 +1585,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1606,7 +1605,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1626,7 +1625,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1650,7 +1649,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1674,7 +1673,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1694,7 +1693,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1719,7 +1718,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1740,7 +1739,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1764,7 +1763,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} -u root -p root --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = format!("RETURN http::get('http://{addr}/version');\n\n");
@@ -1789,7 +1788,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN 1;\n\n";
@@ -1810,7 +1809,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN 1;\n\n";
@@ -1834,7 +1833,7 @@ mod cli_integration {
 
 			let cmd = format!(
 				"sql --conn ws://{addr} --ns {throwaway} --db {throwaway} --multi",
-				throwaway = Ulid::new()
+				throwaway = UlidMono::new().encode()
 			);
 
 			let query = "RETURN 1;\n\n";

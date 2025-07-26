@@ -6,6 +6,7 @@ use crate::doc::CursorDoc;
 use crate::err::Error;
 use crate::expr::{Array, Number, Object, Strand, Thing, Uuid, Value, escape::EscapeRid};
 use anyhow::Result;
+use ferroid::{Base32UlidExt, UlidMono};
 use nanoid::nanoid;
 use range::IdRange;
 use reblessive::tree::Stk;
@@ -14,7 +15,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Bound, Deref};
-use ulid::Ulid;
 
 pub mod range;
 
@@ -186,7 +186,7 @@ impl Id {
 	}
 	/// Generate a new random ULID
 	pub fn ulid() -> Self {
-		Self::String(Ulid::new().to_string())
+		Self::String(UlidMono::new().encode().to_string())
 	}
 	/// Generate a new random UUID
 	pub fn uuid() -> Self {

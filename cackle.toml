@@ -925,7 +925,7 @@ allow_network = true
 [pkg.nix]
 allow_unsafe = true
 
-[pkg.ulid]
+[pkg.ferroid]
 allow_unsafe = true
 
 [pkg.serde_html_form]

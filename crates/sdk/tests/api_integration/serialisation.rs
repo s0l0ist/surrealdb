@@ -1,5 +1,5 @@
+use ferroid::{Base32UlidExt, UlidMono};
 use serde::{Deserialize, Serialize};
-use ulid::Ulid;
 
 use crate::api_integration::NS;
 
@@ -12,7 +12,7 @@ pub async fn serialise_uuid(new_db: impl CreateDb) {
 		uuid: Uuid,
 	}
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record = Record {
 		uuid: Uuid::new_v4(),

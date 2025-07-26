@@ -256,12 +256,12 @@ pub mod is {
 	use crate::fnc::args::Optional;
 	use anyhow::{Result, bail};
 	use chrono::NaiveDateTime;
+	use ferroid::{Base32UlidExt, ULID};
 	use regex::Regex;
 	use semver::Version;
 	use std::char;
 	use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 	use std::sync::LazyLock;
-	use ulid::Ulid;
 	use url::Url;
 	use uuid::Uuid;
 
@@ -356,7 +356,7 @@ pub mod is {
 	}
 
 	pub fn ulid((arg,): (String,)) -> Result<Value> {
-		Ok(Ulid::from_string(arg.as_ref()).is_ok().into())
+		Ok(ULID::decode(arg).is_ok().into())
 	}
 
 	pub fn record((arg, Optional(tb)): (String, Optional<Value>)) -> Result<Value> {

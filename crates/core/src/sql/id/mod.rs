@@ -3,6 +3,7 @@ use crate::cnf::ID_CHARS;
 use crate::err::Error;
 use crate::sql::{Array, Number, Object, SqlValue, Strand, Thing, Uuid, escape::EscapeRid};
 use anyhow::Result;
+use ferroid::{Base32UlidExt, UlidMono};
 use nanoid::nanoid;
 use range::IdRange;
 use revision::revisioned;
@@ -10,7 +11,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Bound, Deref};
-use ulid::Ulid;
 
 pub mod range;
 
@@ -218,7 +218,7 @@ impl Id {
 	}
 	/// Generate a new random ULID
 	pub fn ulid() -> Self {
-		Self::String(Ulid::new().to_string())
+		Self::String(UlidMono::new().encode().to_string())
 	}
 	/// Generate a new random UUID
 	pub fn uuid() -> Self {

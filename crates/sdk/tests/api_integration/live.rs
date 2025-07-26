@@ -15,6 +15,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
+use ferroid::{Base32UlidExt, ULID, UlidMono};
 use futures::Stream;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,6 @@ use surrealdb::opt::Resource;
 use surrealdb_core::expr::Value as CoreValue;
 use tokio::sync::RwLock;
 use tracing::info;
-use ulid::Ulid;
 
 use crate::api_integration::ApiRecordId;
 
@@ -41,10 +41,10 @@ const MAX_NOTIFICATIONS: usize = 100;
 pub async fn live_select_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
 
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -78,7 +78,7 @@ pub async fn live_select_table(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -100,10 +100,10 @@ pub async fn live_select_table(new_db: impl CreateDb) {
 pub async fn live_select_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
 
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		let record_id = RecordId::from((table, "john".to_owned()));
@@ -140,7 +140,7 @@ pub async fn live_select_record_id(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		let record_id = RecordId::from((table, "john".to_owned()));
@@ -165,10 +165,10 @@ pub async fn live_select_record_id(new_db: impl CreateDb) {
 pub async fn live_select_record_ranges(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
 
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -205,7 +205,7 @@ pub async fn live_select_record_ranges(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -253,9 +253,9 @@ pub async fn live_select_record_ranges(new_db: impl CreateDb) {
 pub async fn live_select_query(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
 
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -312,7 +312,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -335,7 +335,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -375,7 +375,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", UlidMono::new().encode());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -421,10 +421,10 @@ struct LinkContent {
 pub async fn live_select_with_fetch(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
 
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 
-	let table = format!("table_{}", Ulid::new());
-	let linktb = format!("link_{}", Ulid::new());
+	let table = format!("table_{}", UlidMono::new().encode());
+	let linktb = format!("link_{}", UlidMono::new().encode());
 	db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 	// Start listening

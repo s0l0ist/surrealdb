@@ -5,11 +5,11 @@ use crate::expr::value::Value;
 use crate::expr::{Datetime, Duration, Number};
 use anyhow::{Result, bail, ensure};
 use chrono::{TimeZone, Utc};
+use ferroid::{Base32UlidExt, UlidMono};
 use nanoid::nanoid;
 use rand::Rng;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::IteratorRandom;
-use ulid::Ulid;
 
 use super::args::{Any, Args, Arity, FromArg, Optional};
 
@@ -271,13 +271,12 @@ pub fn ulid((Optional(timestamp),): (Optional<Datetime>,)) -> Result<Value> {
 					),
 				}
 			);
-
-			Ulid::from_datetime(timestamp.0.into())
+			UlidMono::from_datetime(timestamp.0.into())
 		}
-		None => Ulid::new(),
+		None => UlidMono::new(),
 	};
 
-	Ok(ulid.to_string().into())
+	Ok(ulid.encode().to_string().into())
 }
 
 pub fn uuid((Optional(timestamp),): (Optional<Datetime>,)) -> Result<Value> {

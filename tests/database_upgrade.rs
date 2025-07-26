@@ -8,6 +8,7 @@ mod common;
 #[cfg(all(docker, feature = "storage-rocksdb"))]
 mod database_upgrade {
 	use super::common::docker::DockerContainer;
+	use ferroid::{Base32UlidExt, UlidMono};
 	use std::net::Ipv4Addr;
 	use std::time::Duration;
 	use surrealdb::engine::any::{Any, connect};
@@ -19,7 +20,6 @@ mod database_upgrade {
 	use tokio::time::timeout;
 	use tracing::error;
 	use tracing::info;
-	use ulid::Ulid;
 
 	const NS: &str = "test";
 	const DB: &str = "test";
@@ -233,7 +233,7 @@ mod database_upgrade {
 	async fn start_docker(docker_version: &str) -> (String, DockerContainer, Surreal<Any>) {
 		use surrealdb::opt::WaitFor::Connection;
 		// Location of the database files (RocksDB) in the Host
-		let file_path = format!("/tmp/{}.db", Ulid::new());
+		let file_path = format!("/tmp/{}.db", UlidMono::new().encode());
 		let port = request_port().await;
 		let docker = DockerContainer::start(docker_version, &file_path, USER, PASS, port);
 		let client = Surreal::<Any>::init();

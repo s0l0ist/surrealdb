@@ -355,12 +355,12 @@ mod rocksdb {
 	use surrealdb::engine::local::RocksDb;
 	use surrealdb::opt::capabilities::Capabilities;
 
+	use ferroid::{Base32UlidExt, UlidMono};
 	use surrealdb::Surreal;
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::Semaphore;
 	use tokio::sync::SemaphorePermit;
-	use ulid::Ulid;
 
 	use super::TEMP_DIR;
 	use super::{ROOT_PASS, ROOT_USER};
@@ -369,7 +369,7 @@ mod rocksdb {
 
 	async fn new_db() -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(UlidMono::new().encode());
 		let root = Root {
 			username: ROOT_USER,
 			password: ROOT_PASS,
@@ -382,7 +382,7 @@ mod rocksdb {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = UlidMono::new().encode().to_string();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"rocksdb://{}",
@@ -477,12 +477,12 @@ mod surrealkv {
 	use surrealdb::engine::local::SurrealKv;
 	use surrealdb::opt::capabilities::Capabilities;
 
+	use ferroid::{Base32UlidExt, UlidMono};
 	use surrealdb::Surreal;
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::Semaphore;
 	use tokio::sync::SemaphorePermit;
-	use ulid::Ulid;
 
 	use super::TEMP_DIR;
 	use super::{ROOT_PASS, ROOT_USER};
@@ -491,7 +491,7 @@ mod surrealkv {
 
 	async fn new_db() -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(UlidMono::new().encode());
 		let root = Root {
 			username: ROOT_USER,
 			password: ROOT_PASS,
@@ -504,7 +504,7 @@ mod surrealkv {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = UlidMono::new().encode().to_string();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"surrealkv://{}",
@@ -530,12 +530,12 @@ mod surrealkv_versioned {
 	use surrealdb::engine::local::SurrealKv;
 	use surrealdb::opt::capabilities::Capabilities;
 
+	use ferroid::{Base32UlidExt, UlidMono};
 	use surrealdb::Surreal;
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::Semaphore;
 	use tokio::sync::SemaphorePermit;
-	use ulid::Ulid;
 
 	use super::{ROOT_PASS, ROOT_USER, TEMP_DIR};
 
@@ -543,7 +543,7 @@ mod surrealkv_versioned {
 
 	async fn new_db() -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(UlidMono::new().encode());
 		let root = Root {
 			username: ROOT_USER,
 			password: ROOT_PASS,
@@ -556,7 +556,7 @@ mod surrealkv_versioned {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = UlidMono::new().encode().to_string();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"surrealkv+versioned://{}",

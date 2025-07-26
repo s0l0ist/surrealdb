@@ -11,16 +11,16 @@
 // Tests for exporting and importing data
 // Supported by the storage engines and the HTTP protocol
 
+use ferroid::{Base32UlidExt, UlidMono};
 use futures::StreamExt as _;
 use surrealdb::Value;
 use tokio::fs::remove_file;
-use ulid::Ulid;
 
 use super::{ApiRecordId, CreateDb, NS, Record};
 
 pub async fn export_import(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let db_name = Ulid::new().to_string();
+	let db_name = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&db_name).await.unwrap();
 
 	// Insert records
@@ -68,7 +68,7 @@ pub async fn export_import(new_db: impl CreateDb) {
 
 pub async fn export_with_config(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let db_name = Ulid::new().to_string();
+	let db_name = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&db_name).await.unwrap();
 
 	// Insert records
@@ -132,7 +132,7 @@ pub async fn export_with_config(new_db: impl CreateDb) {
 #[cfg(feature = "ml")]
 pub async fn ml_export_import(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let db_name = Ulid::new().to_string();
+	let db_name = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&db_name).await.unwrap();
 	db.import("../../tests/linear_test.surml").ml().await.unwrap();
 	drop(permit);
@@ -144,7 +144,7 @@ pub async fn ml_export_import(new_db: impl CreateDb) {
 
 pub async fn export_escaped_table_names(new_db: impl CreateDb) {
 	let (_, db) = new_db.create_db().await;
-	let db_name = Ulid::new().to_string();
+	let db_name = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&db_name).await.unwrap();
 
 	let query = r#"
@@ -178,7 +178,7 @@ relate person:`a`->`friends2\`;\nDEFINE USER IF NOT EXISTS pwned ON ROOT PASSWOR
 	std::fs::write(&file_path, &export_text).unwrap();
 
 	let (_, db) = new_db.create_db().await;
-	let db_name = Ulid::new().to_string();
+	let db_name = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&db_name).await.unwrap();
 
 	db.import(file_path).await.unwrap();

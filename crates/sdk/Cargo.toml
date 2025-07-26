@@ -156,7 +156,7 @@ test-log = { workspace = true, features = ["trace"] }
 time = { workspace = true, features = ["serde"] }
 tokio = { workspace = true, features = ["macros", "sync", "rt-multi-thread"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-ulid = { workspace = true, features = ["serde"] }
+ferroid = { workspace = true, features = ["ulid", "base32"] }
 wiremock.workspace = true
 
 [lints]

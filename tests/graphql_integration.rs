@@ -11,11 +11,11 @@ mod graphql_integration {
 		};
 	}
 
+	use ferroid::{Base32UlidExt, UlidMono};
 	use http::header;
 	use reqwest::Client;
 	use serde_json::json;
 	use test_log::test;
-	use ulid::Ulid;
 
 	use crate::common::{PASS, USER};
 
@@ -28,8 +28,8 @@ mod graphql_integration {
 		let sql_url = &format!("http://{addr}/sql");
 
 		let mut headers = reqwest::header::HeaderMap::new();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 		headers.insert("surreal-ns", ns.parse()?);
 		headers.insert("surreal-db", db.parse()?);
 		headers.insert(header::ACCEPT, "application/json".parse()?);
@@ -211,8 +211,8 @@ mod graphql_integration {
 		let signup_url = &format!("http://{addr}/signup");
 
 		let mut headers = reqwest::header::HeaderMap::new();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 		headers.insert("surreal-ns", ns.parse()?);
 		headers.insert("surreal-db", db.parse()?);
 		headers.insert(header::ACCEPT, "application/json".parse()?);
@@ -313,8 +313,8 @@ mod graphql_integration {
 		let sql_url = &format!("http://{addr}/sql");
 
 		let mut headers = reqwest::header::HeaderMap::new();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 		headers.insert("surreal-ns", ns.parse()?);
 		headers.insert("surreal-db", db.parse()?);
 		headers.insert(header::ACCEPT, "application/json".parse()?);
@@ -428,8 +428,8 @@ mod graphql_integration {
 		let sql_url = &format!("http://{addr}/sql");
 
 		let mut headers = reqwest::header::HeaderMap::new();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = UlidMono::new().encode().to_string();
+		let db = UlidMono::new().encode().to_string();
 		headers.insert("surreal-ns", ns.parse()?);
 		headers.insert("surreal-db", db.parse()?);
 		headers.insert(header::ACCEPT, "application/json".parse()?);

@@ -171,7 +171,7 @@ sysinfo.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 trice.workspace = true
-ulid = { workspace = true, features = ["serde"] }
+ferroid = { workspace = true, features = ["ulid", "base32"] }
 unicase.workspace = true
 url.workspace = true
 

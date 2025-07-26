@@ -274,7 +274,7 @@ pub mod from {
 	use crate::expr::{Uuid, value::Value};
 	use anyhow::Result;
 	use chrono::DateTime;
-	use ulid::Ulid;
+	use ferroid::{Base32UlidExt, ToU64, ULID};
 
 	pub fn nanos((val,): (i64,)) -> Result<Value> {
 		const NANOS_PER_SEC: i64 = 1_000_000_000;
@@ -342,8 +342,12 @@ pub mod from {
 	}
 
 	pub fn ulid((val,): (String,)) -> Result<Value> {
-		match Ulid::from_string(&val) {
-			Ok(v) => Ok(Datetime::from(DateTime::from(v.datetime())).into()),
+		match ULID::decode(&val) {
+			Ok(v) => {
+				let datetime = std::time::SystemTime::UNIX_EPOCH
+					+ core::time::Duration::from_millis(v.timestamp().to_u64());
+				Ok(Datetime::from(DateTime::from(datetime)).into())
+			}
 			_ => Err(anyhow::Error::new(Error::InvalidArguments {
 				name: String::from("time::from::ulid"),
 				message: String::from(

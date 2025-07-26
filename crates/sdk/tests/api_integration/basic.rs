@@ -1,5 +1,6 @@
 // Tests common to all protocols and storage engines
 
+use ferroid::{Base32UlidExt, UlidMono};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
@@ -19,7 +20,6 @@ use surrealdb::sql::statements::BeginStatement;
 use surrealdb::sql::statements::CommitStatement;
 use surrealdb::{error::Api as ApiError, error::Db as DbError};
 use surrealdb_core::expr::{Id, Value as CoreValue};
-use ulid::Ulid;
 
 use crate::api_integration::NS;
 use crate::api_integration::RecordName;
@@ -36,7 +36,7 @@ pub async fn connect(new_db: impl CreateDb) {
 
 pub async fn yuse(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let item = Ulid::new().to_string();
+	let item = UlidMono::new().encode().to_string();
 	let err = db.create(Resource::from(item.as_str())).await.unwrap_err();
 	if !err.to_string().contains("Specify a namespace to use") {
 		panic!("{:?}", err)
@@ -53,7 +53,7 @@ pub async fn yuse(new_db: impl CreateDb) {
 
 pub async fn invalidate(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	db.invalidate().await.unwrap();
 	let error = db.create::<Option<ApiRecordId>>(("user", "john")).await.unwrap_err();
@@ -66,9 +66,9 @@ pub async fn invalidate(new_db: impl CreateDb) {
 
 pub async fn signup_record(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let database = Ulid::new().to_string();
+	let database = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&database).await.unwrap();
-	let access = Ulid::new().to_string();
+	let access = UlidMono::new().encode().to_string();
 	let sql = format!(
 		"
         DEFINE ACCESS `{access}` ON DB TYPE RECORD
@@ -95,8 +95,8 @@ pub async fn signup_record(new_db: impl CreateDb) {
 
 pub async fn signin_ns(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
-	let user = Ulid::new().to_string();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
+	let user = UlidMono::new().encode().to_string();
 	let pass = "password123";
 	let sql = format!("DEFINE USER `{user}` ON NAMESPACE PASSWORD '{pass}'");
 	let response = db.query(sql).await.unwrap();
@@ -113,9 +113,9 @@ pub async fn signin_ns(new_db: impl CreateDb) {
 
 pub async fn signin_db(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let database = Ulid::new().to_string();
+	let database = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&database).await.unwrap();
-	let user = Ulid::new().to_string();
+	let user = UlidMono::new().encode().to_string();
 	let pass = "password123";
 	let sql = format!("DEFINE USER `{user}` ON DATABASE PASSWORD '{pass}'");
 	let response = db.query(sql).await.unwrap();
@@ -133,9 +133,9 @@ pub async fn signin_db(new_db: impl CreateDb) {
 
 pub async fn signin_record(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let database = Ulid::new().to_string();
+	let database = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&database).await.unwrap();
-	let access = Ulid::new().to_string();
+	let access = UlidMono::new().encode().to_string();
 	let email = format!("{access}@example.com");
 	let pass = "password123";
 	let sql = format!(
@@ -175,9 +175,9 @@ pub async fn signin_record(new_db: impl CreateDb) {
 
 pub async fn record_access_throws_error(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let database = Ulid::new().to_string();
+	let database = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&database).await.unwrap();
-	let access = Ulid::new().to_string();
+	let access = UlidMono::new().encode().to_string();
 	let email = format!("{access}@example.com");
 	let pass = "password123";
 	let sql = format!(
@@ -257,9 +257,9 @@ pub async fn record_access_throws_error(new_db: impl CreateDb) {
 
 pub async fn record_access_invalid_query(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	let database = Ulid::new().to_string();
+	let database = UlidMono::new().encode().to_string();
 	db.use_ns(NS).use_db(&database).await.unwrap();
-	let access = Ulid::new().to_string();
+	let access = UlidMono::new().encode().to_string();
 	let email = format!("{access}@example.com");
 	let pass = "password123";
 	let sql = format!(
@@ -345,8 +345,8 @@ pub async fn record_access_invalid_query(new_db: impl CreateDb) {
 
 pub async fn authenticate(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
-	let user = Ulid::new().to_string();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
+	let user = UlidMono::new().encode().to_string();
 	let pass = "password123";
 	let sql = format!("DEFINE USER `{user}` ON NAMESPACE PASSWORD '{pass}'");
 	let response = db.query(sql).await.unwrap();
@@ -365,7 +365,7 @@ pub async fn authenticate(new_db: impl CreateDb) {
 
 pub async fn query(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let _ = db
 		.query(
@@ -387,7 +387,7 @@ pub async fn query(new_db: impl CreateDb) {
 
 pub async fn query_raw(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let _ = db
 		.query(Raw::from("CREATE user:john SET name = 'John Doe'"))
@@ -409,7 +409,7 @@ pub async fn query_raw(new_db: impl CreateDb) {
 
 pub async fn query_decimals(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	let sql = "
 	    DEFINE TABLE foo;
 	    DEFINE FIELD bar ON foo TYPE decimal;
@@ -421,7 +421,7 @@ pub async fn query_decimals(new_db: impl CreateDb) {
 
 pub async fn query_binds(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let mut response =
 		db.query("CREATE user:john SET name = $name").bind(("name", "John Doe")).await.unwrap();
@@ -453,7 +453,7 @@ pub async fn query_binds(new_db: impl CreateDb) {
 
 pub async fn query_with_stats(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "CREATE foo; SELECT * FROM foo";
 	let mut response = db.query(sql).with_stats().await.unwrap();
@@ -469,7 +469,7 @@ pub async fn query_with_stats(new_db: impl CreateDb) {
 
 pub async fn query_chaining(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let response = db
 		.query(BeginStatement::default())
@@ -485,7 +485,7 @@ pub async fn query_chaining(new_db: impl CreateDb) {
 
 pub async fn mixed_results_query(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "CREATE bar SET baz = rand('a'); CREATE foo;";
 	let mut response = db.query(sql).await.unwrap();
@@ -495,7 +495,7 @@ pub async fn mixed_results_query(new_db: impl CreateDb) {
 
 pub async fn create_record_no_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let _: Option<ApiRecordId> = db.create("user").await.unwrap();
 	let _: Value = db.create(Resource::from("user")).await.unwrap();
@@ -503,7 +503,7 @@ pub async fn create_record_no_id(new_db: impl CreateDb) {
 
 pub async fn create_record_with_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let _: Option<ApiRecordId> = db.create(("user", "jane")).await.unwrap();
 	let _: Value = db.create(Resource::from(("user", "john"))).await.unwrap();
@@ -512,7 +512,7 @@ pub async fn create_record_with_id(new_db: impl CreateDb) {
 
 pub async fn create_record_no_id_with_content(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let _: Option<ApiRecordId> = db
 		.create("user")
@@ -532,7 +532,7 @@ pub async fn create_record_no_id_with_content(new_db: impl CreateDb) {
 
 pub async fn create_record_with_id_with_content(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record: Option<ApiRecordId> = db
 		.create(("user", "john"))
@@ -570,7 +570,7 @@ pub async fn create_record_with_id_in_content(new_db: impl CreateDb) {
 	}
 
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 
 	let record: Option<RecordBuf> = db
@@ -627,7 +627,7 @@ pub async fn create_record_with_id_in_content(new_db: impl CreateDb) {
 
 pub async fn insert_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Vec<ApiRecordId> = db.insert(table).await.unwrap();
@@ -643,7 +643,7 @@ pub async fn insert_table(new_db: impl CreateDb) {
 
 pub async fn insert_thing(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.insert((table, "user1")).await.unwrap();
@@ -663,7 +663,7 @@ pub async fn insert_thing(new_db: impl CreateDb) {
 
 pub async fn insert_unspecified(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let tmp: Result<Vec<RecordId>, _> = db.insert(()).await;
 	tmp.unwrap_err();
@@ -697,7 +697,7 @@ pub async fn insert_unspecified(new_db: impl CreateDb) {
 
 pub async fn insert_relation_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let tmp: Result<Vec<ApiRecordId>, _> =
 		db.insert("likes").relation("{}".parse::<Value>().unwrap()).await;
@@ -717,7 +717,7 @@ pub async fn insert_relation_table(new_db: impl CreateDb) {
 
 pub async fn select_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.create(table).await.unwrap();
@@ -729,7 +729,7 @@ pub async fn select_table(new_db: impl CreateDb) {
 
 pub async fn select_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record_id = ("user", "john");
 	let _: Option<ApiRecordId> = db.create(record_id).await.unwrap();
@@ -746,7 +746,7 @@ pub async fn select_record_id(new_db: impl CreateDb) {
 
 pub async fn select_record_ranges(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.create((table, "amos")).await.unwrap();
@@ -788,7 +788,7 @@ pub async fn select_record_ranges(new_db: impl CreateDb) {
 
 pub async fn select_records_order_by_start_limit(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE user:john SET name = 'John';
@@ -823,7 +823,7 @@ pub async fn select_records_order_by_start_limit(new_db: impl CreateDb) {
 
 pub async fn select_records_order_by(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE user:john SET name = 'John';
@@ -843,7 +843,7 @@ pub async fn select_records_order_by(new_db: impl CreateDb) {
 
 pub async fn select_records_fetch(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE tag:rs SET name = 'Rust';
@@ -939,7 +939,7 @@ pub async fn select_records_fetch(new_db: impl CreateDb) {
 
 pub async fn update_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.create(table).await.unwrap();
@@ -951,7 +951,7 @@ pub async fn update_table(new_db: impl CreateDb) {
 
 pub async fn update_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.create((table, "john")).await.unwrap();
@@ -962,7 +962,7 @@ pub async fn update_record_id(new_db: impl CreateDb) {
 
 pub async fn update_table_with_content(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE type::thing($table, 'amos') SET name = 'Amos';
@@ -1005,7 +1005,7 @@ pub async fn update_table_with_content(new_db: impl CreateDb) {
 
 pub async fn update_record_range_with_content(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE type::thing($table, 'amos') SET name = 'Amos';
@@ -1063,7 +1063,7 @@ pub async fn update_record_range_with_content(new_db: impl CreateDb) {
 
 pub async fn update_record_id_with_content(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record_id = ("user", "john");
 	let user: Option<RecordName> = db
@@ -1103,7 +1103,7 @@ struct Person {
 
 pub async fn update_merge_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record_id = ("person", "jaime");
 	let mut jaime: Option<Person> = db
@@ -1139,7 +1139,7 @@ pub async fn update_merge_record_id(new_db: impl CreateDb) {
 
 pub async fn upsert_merge_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	// Create a new record using upsert
 	let record_id = ("person", "jaime");
@@ -1224,7 +1224,7 @@ pub async fn patch_record_id(new_db: impl CreateDb) {
 	}
 
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let id = "john";
 	let _: Option<ApiRecordId> = db
@@ -1262,7 +1262,7 @@ pub async fn upsert_patch_record_id(new_db: impl CreateDb) {
 	}
 
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let id = "john";
 	// Create a new record using upsert
@@ -1324,7 +1324,7 @@ pub async fn patch_record_id_ops(new_db: impl CreateDb) {
 	}
 
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let id = "john";
 	let _: Option<ApiRecordId> = db
@@ -1353,7 +1353,7 @@ pub async fn patch_record_id_ops(new_db: impl CreateDb) {
 
 pub async fn delete_table(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let table = "user";
 	let _: Option<ApiRecordId> = db.create(table).await.unwrap();
@@ -1369,7 +1369,7 @@ pub async fn delete_table(new_db: impl CreateDb) {
 
 pub async fn delete_record_id(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let record_id = ("user", "john");
 	let _: Option<ApiRecordId> = db.create(record_id).await.unwrap();
@@ -1387,7 +1387,7 @@ pub async fn delete_record_id(new_db: impl CreateDb) {
 
 pub async fn delete_record_range(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
         CREATE type::thing($table, 'amos') SET name = 'Amos';
@@ -1430,7 +1430,7 @@ pub async fn delete_record_range(new_db: impl CreateDb) {
 
 pub async fn changefeed(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	// Enable change feeds
 	let sql = "
     DEFINE TABLE testuser CHANGEFEED 1h;
@@ -1604,7 +1604,7 @@ pub async fn version(new_db: impl CreateDb) {
 
 pub async fn set_unset(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let (key, value) = ("name", "Doe");
 	let sql = "RETURN $name";
@@ -1639,7 +1639,7 @@ pub async fn return_bool(new_db: impl CreateDb) {
 
 pub async fn run(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 	let sql = "
 	DEFINE FUNCTION fn::foo() {
@@ -1677,7 +1677,7 @@ pub async fn run(new_db: impl CreateDb) {
 
 pub async fn multi_take(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 
 	db.query("INSERT INTO user {name: 'John', address: 'USA'};").await.unwrap();
@@ -1696,7 +1696,7 @@ pub async fn multi_take(new_db: impl CreateDb) {
 
 pub async fn field_and_index_methods(new_db: impl CreateDb) {
 	let (permit, db) = new_db.create_db().await;
-	db.use_ns(NS).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(NS).use_db(UlidMono::new().encode()).await.unwrap();
 	drop(permit);
 
 	let mut response =

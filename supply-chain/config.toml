@@ -1378,8 +1378,8 @@ criteria = "safe-to-deploy"
 version = "1.18.0"
 criteria = "safe-to-deploy"
 
-[[exemptions.ulid]]
-version = "1.2.1"
+[[exemptions.ferroid]]
+version = "0.5.5"
 criteria = "safe-to-deploy"
 
 [[exemptions.untrusted]]
