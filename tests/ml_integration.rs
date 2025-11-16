@@ -7,12 +7,12 @@ mod ml_integration {
 	use std::sync::atomic::{AtomicBool, Ordering};
 	use std::time::Duration;
 
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use http::{StatusCode, header};
 	use reqwest::Body;
 	use serde::{Deserialize, Serialize};
 	use surrealdb_core::ml::storage::stream_adapter::StreamAdapter;
 	use test_log::test;
-	use ulid::Ulid;
 
 	use super::*;
 
@@ -79,8 +79,8 @@ mod ml_integration {
 	async fn upload_model() -> Result<(), Box<dyn std::error::Error>> {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 		upload_file(&addr, &ns, &db).await?;
 		Ok(())
 	}
@@ -89,8 +89,8 @@ mod ml_integration {
 	async fn upload_bad_file() -> Result<(), Box<dyn std::error::Error>> {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 		let generator = StreamAdapter::new(5, "./tests/should_crash.surml".to_string()).unwrap();
 		let body = Body::wrap_stream(generator);
 		// Prepare HTTP client
@@ -124,8 +124,8 @@ mod ml_integration {
 	async fn upload_file_with_no_name() -> Result<(), Box<dyn std::error::Error>> {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 		let generator = StreamAdapter::new(5, "./tests/no_name.surml".to_string()).unwrap();
 		let body = Body::wrap_stream(generator);
 		// Prepare HTTP client
@@ -156,8 +156,8 @@ mod ml_integration {
 	async fn upload_file_with_no_version() -> Result<(), Box<dyn std::error::Error>> {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 		let generator = StreamAdapter::new(5, "./tests/no_version.surml".to_string()).unwrap();
 		let body = Body::wrap_stream(generator);
 		// Prepare HTTP client
@@ -188,8 +188,8 @@ mod ml_integration {
 	async fn upload_file_with_no_version_or_name() -> Result<(), Box<dyn std::error::Error>> {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 		let generator =
 			StreamAdapter::new(5, "./tests/no_name_or_version.surml".to_string()).unwrap();
 		let body = Body::wrap_stream(generator);
@@ -222,8 +222,8 @@ mod ml_integration {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
 
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 
 		upload_file(&addr, &ns, &db).await?;
 
@@ -259,8 +259,8 @@ mod ml_integration {
 		let _lock = LockHandle::acquire_lock();
 		let (addr, _server) = common::start_server_with_defaults().await.unwrap();
 
-		let ns = Ulid::new().to_string();
-		let db = Ulid::new().to_string();
+		let ns = ULID::now().encode();
+		let db = ULID::now().encode();
 
 		upload_file(&addr, &ns, &db).await?;
 

@@ -36,7 +36,7 @@ serde_json.workspace = true
 surrealdb-protocol = { workspace = true, features = ["flatbuffers"] }
 surrealdb-types-derive.workspace = true
 tracing.workspace = true
-ulid.workspace = true
+ferroid = { workspace = true, features = ["std", "alloc", "ulid", "basic", "base32", "serde"] }
 
 # WASM DEPENDENCY CONFIGURATION
 [target.'cfg(target_family = "wasm")'.dependencies]

@@ -10,6 +10,7 @@ mod database_upgrade {
 	use std::net::Ipv4Addr;
 	use std::time::Duration;
 
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use surrealdb::engine::any::{Any, connect};
 	use surrealdb::opt::auth::Root;
 	use surrealdb::{Connection, Surreal, Value};
@@ -17,7 +18,6 @@ mod database_upgrade {
 	use tokio::net::TcpListener;
 	use tokio::time::{sleep, timeout};
 	use tracing::{error, info};
-	use ulid::Ulid;
 
 	use super::common::docker::DockerContainer;
 
@@ -218,7 +218,7 @@ mod database_upgrade {
 	async fn start_docker(docker_version: &str) -> (String, DockerContainer, Surreal<Any>) {
 		use surrealdb::opt::WaitFor::Connection;
 		// Location of the database files (RocksDB) in the Host
-		let file_path = format!("/tmp/{}.db", Ulid::new());
+		let file_path = format!("/tmp/{}.db", ULID::now());
 		let port = request_port().await;
 		let docker = DockerContainer::start(docker_version, &file_path, USER, PASS, port);
 		let client = Surreal::<Any>::init();
@@ -392,7 +392,7 @@ mod database_upgrade {
 		info!("Create a new local instance; endpoint => {endpoint}");
 		let db = connect(endpoint).await.unwrap();
 		info!("Select namespace and database");
-		db.use_ns(Ulid::new().to_string()).use_db(DB).await.unwrap();
+		db.use_ns(ULID::now().encode()).use_db(DB).await.unwrap();
 		db
 	}
 }

@@ -337,9 +337,9 @@ pub mod is {
 
 	use anyhow::{Result, bail};
 	use chrono::NaiveDateTime;
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use regex::Regex;
 	use semver::Version;
-	use ulid::Ulid;
 	use url::Url;
 	use uuid::Uuid;
 
@@ -439,7 +439,7 @@ pub mod is {
 	}
 
 	pub fn ulid((arg,): (String,)) -> Result<Value> {
-		Ok(Ulid::from_string(arg.as_ref()).is_ok().into())
+		Ok(ULID::decode(arg).is_ok().into())
 	}
 
 	pub fn record((arg, Optional(tb)): (String, Optional<Value>)) -> Result<Value> {

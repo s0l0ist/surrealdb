@@ -276,7 +276,7 @@ pub mod from {
 
 	use anyhow::Result;
 	use chrono::DateTime;
-	use ulid::Ulid;
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 
 	use crate::err::Error;
 	use crate::val::{Datetime, Uuid, Value};
@@ -347,8 +347,14 @@ pub mod from {
 	}
 
 	pub fn ulid((val,): (String,)) -> Result<Value> {
-		match Ulid::from_string(&val) {
-			Ok(v) => Ok(Datetime::from(DateTime::from(v.datetime())).into()),
+		match ULID::decode(val) {
+			Ok(v) => {
+				// Safe to cast to u64 because ULID timestamps use only 48 bits
+				// (milliseconds since the Unix epoch).
+				let time = std::time::SystemTime::UNIX_EPOCH
+					+ std::time::Duration::from_millis(v.timestamp() as u64);
+				Ok(Datetime::from(DateTime::from(time)).into())
+			}
 			_ => Err(anyhow::Error::new(Error::InvalidArguments {
 				name: String::from("time::from_ulid"),
 				message: String::from(

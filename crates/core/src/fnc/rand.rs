@@ -1,10 +1,10 @@
 use anyhow::{Result, bail, ensure};
 use chrono::{TimeZone, Utc};
+use ferroid::id::ULID;
 use nanoid::nanoid;
 use rand::Rng;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::IteratorRandom;
-use ulid::Ulid;
 
 use super::args::{Any, Args, Arity, FromArg, Optional};
 use crate::cnf::ID_CHARS;
@@ -271,9 +271,9 @@ pub fn ulid((Optional(timestamp),): (Optional<Datetime>,)) -> Result<Value> {
 				}
 			);
 
-			Ulid::from_datetime(timestamp.0.into())
+			ULID::from_datetime(timestamp.0.into())
 		}
-		None => Ulid::new(),
+		None => ULID::now(),
 	};
 
 	Ok(ulid.to_string().into())

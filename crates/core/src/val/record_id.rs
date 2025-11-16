@@ -2,12 +2,12 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::ops::Bound;
 
+use ferroid::{base32::Base32UlidExt, id::ULID};
 use nanoid::nanoid;
 use reblessive::tree::Stk;
 use revision::revisioned;
 use serde::{Deserialize, Serialize};
 use storekey::{BorrowDecode, Encode};
-use ulid::Ulid;
 
 use crate::cnf::ID_CHARS;
 use crate::ctx::Context;
@@ -205,7 +205,7 @@ impl RecordIdKey {
 	}
 	/// Generate a new random ULID
 	pub fn ulid() -> Self {
-		Self::String(Ulid::new().to_string())
+		Self::String(ULID::now().encode().as_string())
 	}
 	/// Generate a new random UUID
 	pub fn uuid() -> Self {

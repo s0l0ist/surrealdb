@@ -204,8 +204,8 @@ mod ws {
 	async fn check_max_size() {
 		use std::fmt;
 
+		use ferroid::{base32::Base32UlidExt, id::ULID};
 		use surrealdb::opt::{Config, WebsocketConfig};
-		use ulid::Ulid;
 
 		/// Test content structure for validating large message handling
 		#[derive(Clone, SurrealValue, PartialEq)]
@@ -242,7 +242,7 @@ mod ws {
 		})
 		.await
 		.unwrap();
-		db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+		db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 		drop(permit);
 
 		// Test various message sizes that should be accepted
@@ -434,12 +434,12 @@ mod mem {
 
 #[cfg(feature = "kv-rocksdb")]
 mod rocksdb {
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use surrealdb::Surreal;
 	use surrealdb::engine::local::{Db, RocksDb};
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::{Semaphore, SemaphorePermit};
-	use ulid::Ulid;
 
 	use super::{ROOT_PASS, ROOT_USER, TEMP_DIR};
 
@@ -447,7 +447,7 @@ mod rocksdb {
 
 	async fn new_db(config: Config) -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(ULID::now().encode());
 		let root = Root {
 			username: ROOT_USER.to_string(),
 			password: ROOT_PASS.to_string(),
@@ -460,7 +460,7 @@ mod rocksdb {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = ULID::now().encode();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"rocksdb://{}",
@@ -514,12 +514,12 @@ mod tikv {
 
 #[cfg(feature = "kv-surrealkv")]
 mod surrealkv {
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use surrealdb::Surreal;
 	use surrealdb::engine::local::{Db, SurrealKv};
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::{Semaphore, SemaphorePermit};
-	use ulid::Ulid;
 
 	use super::{ROOT_PASS, ROOT_USER, TEMP_DIR};
 
@@ -527,7 +527,7 @@ mod surrealkv {
 
 	async fn new_db(config: Config) -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(ULID::now().encode());
 		let root = Root {
 			username: ROOT_USER.to_string(),
 			password: ROOT_PASS.to_string(),
@@ -540,7 +540,7 @@ mod surrealkv {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = ULID::now().encode();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"surrealkv://{}",
@@ -562,12 +562,12 @@ mod surrealkv {
 
 #[cfg(feature = "kv-surrealkv")]
 mod surrealkv_versioned {
+	use ferroid::{base32::Base32UlidExt, id::ULID};
 	use surrealdb::Surreal;
 	use surrealdb::engine::local::{Db, SurrealKv};
 	use surrealdb::opt::Config;
 	use surrealdb::opt::auth::Root;
 	use tokio::sync::{Semaphore, SemaphorePermit};
-	use ulid::Ulid;
 
 	use super::{ROOT_PASS, ROOT_USER, TEMP_DIR};
 
@@ -575,7 +575,7 @@ mod surrealkv_versioned {
 
 	async fn new_db(config: Config) -> (SemaphorePermit<'static>, Surreal<Db>) {
 		let permit = PERMITS.acquire().await.unwrap();
-		let path = TEMP_DIR.join(Ulid::new().to_string());
+		let path = TEMP_DIR.join(ULID::now().encode());
 		let root = Root {
 			username: ROOT_USER.to_string(),
 			password: ROOT_PASS.to_string(),
@@ -588,7 +588,7 @@ mod surrealkv_versioned {
 
 	#[test_log::test(tokio::test)]
 	async fn any_engine_can_connect() {
-		let db_dir = Ulid::new().to_string();
+		let db_dir = ULID::now().encode();
 		// Create a database directory using an absolute path
 		surrealdb::engine::any::connect(format!(
 			"surrealkv+versioned://{}",

@@ -10,19 +10,19 @@
 // Tests for exporting and importing data
 // Supported by the storage engines and the HTTP protocol
 
+use ferroid::{base32::Base32UlidExt, id::ULID};
 use futures::StreamExt as _;
 use surrealdb::opt::Config;
 use surrealdb::types::Value;
 use tokio::fs::remove_file;
-use ulid::Ulid;
 
 use super::{ApiRecordId, CreateDb, Record};
 
 pub async fn export_import(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
-	let db_name = Ulid::new().to_string();
-	db.use_ns(Ulid::new().to_string()).use_db(&db_name).await.unwrap();
+	let db_name = ULID::now().encode();
+	db.use_ns(ULID::now().encode()).use_db(&db_name).await.unwrap();
 
 	// Insert records
 	for i in 0..10 {
@@ -70,8 +70,8 @@ pub async fn export_import(new_db: impl CreateDb) {
 pub async fn export_with_config(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
-	let db_name = Ulid::new().to_string();
-	db.use_ns(Ulid::new().to_string()).use_db(&db_name).await.unwrap();
+	let db_name = ULID::now().encode();
+	db.use_ns(ULID::now().encode()).use_db(&db_name).await.unwrap();
 
 	// Insert records
 	for i in 0..10 {
@@ -137,8 +137,8 @@ pub async fn export_with_config(new_db: impl CreateDb) {
 pub async fn ml_export_import(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
-	let db_name = Ulid::new().to_string();
-	db.use_ns(Ulid::new().to_string()).use_db(&db_name).await.unwrap();
+	let db_name = ULID::now().encode();
+	db.use_ns(ULID::now().encode()).use_db(&db_name).await.unwrap();
 	db.import("../../tests/linear_test.surml").ml().await.unwrap();
 	drop(permit);
 	let file = format!("{db_name}.surml");
@@ -150,8 +150,8 @@ pub async fn ml_export_import(new_db: impl CreateDb) {
 pub async fn export_escaped_table_names(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (_, db) = new_db.create_db(config).await;
-	let db_name = Ulid::new().to_string();
-	db.use_ns(Ulid::new().to_string()).use_db(&db_name).await.unwrap();
+	let db_name = ULID::now().encode();
+	db.use_ns(ULID::now().encode()).use_db(&db_name).await.unwrap();
 
 	let query = r#"
 define table if not exists `pwnme666\`;\ncreate cats666 set aaaaaa=1;--`;
@@ -185,8 +185,8 @@ relate person:`a`->`friends2\`;\nDEFINE USER IF NOT EXISTS pwned ON ROOT PASSWOR
 
 	let config = Config::new();
 	let (_, db) = new_db.create_db(config).await;
-	let db_name = Ulid::new().to_string();
-	db.use_ns(Ulid::new().to_string()).use_db(&db_name).await.unwrap();
+	let db_name = ULID::now().encode();
+	db.use_ns(ULID::now().encode()).use_db(&db_name).await.unwrap();
 
 	db.import(file_path).await.unwrap();
 	let res = db.export(()).with_config().await.unwrap();

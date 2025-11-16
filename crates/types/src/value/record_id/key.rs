@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::sql::ToSql;
 use crate::utils::escape::EscapeRid;
+use ferroid::{base32::Base32UlidExt, id::ULID};
 // Needed because we use the SurrealValue derive macro inside the crate which exports it :)
 use crate::{self as surrealdb_types, write_sql};
 use crate::{Array, Number, Object, RecordIdKeyRange, SurrealValue, Uuid, Value};
@@ -42,7 +43,7 @@ impl RecordIdKey {
 	}
 	/// Generate a new random ULID
 	pub fn ulid() -> Self {
-		Self::String(ulid::Ulid::new().to_string())
+		Self::String(ULID::now().encode().as_string())
 	}
 	/// Generate a new random UUID
 	pub fn uuid() -> Self {

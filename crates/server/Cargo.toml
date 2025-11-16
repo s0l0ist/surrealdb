@@ -178,7 +178,7 @@ env_logger.workspace = true
 jsonwebtoken.workspace = true
 serial_test.workspace = true
 test-log = { workspace = true, features = ["trace"] }
-ulid.workspace = true
+ferroid = { workspace = true, features = ["std", "alloc", "ulid", "basic", "base32", "serde"] }
 wiremock.workspace = true
 rstest.workspace = true
 surrealdb-types.workspace = true

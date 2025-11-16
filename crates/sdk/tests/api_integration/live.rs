@@ -13,6 +13,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use ferroid::{base32::Base32UlidExt, id::ULID};
 use futures::{Stream, StreamExt};
 use surrealdb::method::QueryStream;
 use surrealdb::opt::{Config, Resource};
@@ -20,7 +21,6 @@ use surrealdb::types::{Action, RecordId, SurrealValue, Value, object};
 use surrealdb::{Notification, Result};
 use tokio::sync::RwLock;
 use tracing::info;
-use ulid::Ulid;
 
 use super::CreateDb;
 use crate::api_integration::ApiRecordId;
@@ -32,10 +32,10 @@ pub async fn live_select_table(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -74,7 +74,7 @@ pub async fn live_select_table(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -98,10 +98,10 @@ pub async fn live_select_record_id(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		let record_id = RecordId::new(table, "john");
@@ -143,7 +143,7 @@ pub async fn live_select_record_id(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		let record_id = RecordId::new(table, "john");
@@ -169,10 +169,10 @@ pub async fn live_select_record_ranges(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -214,7 +214,7 @@ pub async fn live_select_record_ranges(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -267,9 +267,9 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 		// Start listening
@@ -331,7 +331,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -355,7 +355,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -400,7 +400,7 @@ pub async fn live_select_query(new_db: impl CreateDb) {
 	}
 
 	{
-		let table = format!("table_{}", Ulid::new());
+		let table = format!("table_{}", ULID::now());
 		db.query(format!("DEFINE TABLE {table} CHANGEFEED 10m INCLUDE ORIGINAL")).await.unwrap();
 
 		// Start listening
@@ -431,7 +431,7 @@ pub async fn live_query_delete_notifications(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 
 	let mut stream =
 		db.query("LIVE SELECT field FROM bar").await.unwrap().stream::<Value>(0).unwrap();
@@ -483,10 +483,10 @@ pub async fn live_select_with_fetch(new_db: impl CreateDb) {
 	let config = Config::new();
 	let (permit, db) = new_db.create_db(config).await;
 
-	db.use_ns(Ulid::new().to_string()).use_db(Ulid::new().to_string()).await.unwrap();
+	db.use_ns(ULID::now().encode()).use_db(ULID::now().encode()).await.unwrap();
 
-	let table = format!("table_{}", Ulid::new());
-	let linktb = format!("link_{}", Ulid::new());
+	let table = format!("table_{}", ULID::now());
+	let linktb = format!("link_{}", ULID::now());
 	db.query(format!("DEFINE TABLE {table}")).await.unwrap();
 
 	// Start listening
